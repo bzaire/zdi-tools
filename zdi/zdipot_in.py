@@ -1,12 +1,12 @@
-def zdipot_in(*args, **kwargs):
+def zdipot_in(filename, outputname, incl, vsin, **kwargs):
     """ Creates the zdipot.in with the arguments informed.
         Some parameters could be variables to be passed in
         the bash routine.
         Parameters:
         incl, vsin, vrad, beta, gamma
     """
-    f = InputNml(*args, **kwargs)
-    with open(f.output_filename, 'w') as file:
+    f = InputNml(filename, incl, vsin, **kwargs)
+    with open(outputname, 'w') as file:
         file.write('#!/bin/bash'+'\n')
         file.write('zdipot -b << aa'+'\n')
         # Do you want to make a magnetic image (y/n)
@@ -60,7 +60,7 @@ def zdipot_in(*args, **kwargs):
 
 class InputNml(object):
     "Set the input namelist for the ZDI run"
-    def __init__(self, filename, incl, vsin, vrad, QMB='Q', beta=0, gamma=0, stokes='IV'):
+    def __init__(self, filename, incl, vsin, vrad=0, QMB='Q', beta=0, gamma=0, stokes='IV', save_syntetic_spec = 'y'):
         # Define the basic configuration, recieve additional information
         self.mag_img = 'y'
         self.old_mag_img = 'n'
@@ -84,13 +84,13 @@ class InputNml(object):
         self.weight = 'y'
         self.lfac = '0'
         self.caim = '1'
-        self.max_int = '50'
+        self.max_int = '100'
         self.filebrightness = self.filename[:-2]+"m1"
-        self.save_syntetic_spec = 'y'
+        self.save_syntetic_spec = str(save_syntetic_spec)
         self.filesyntspec = filename[:-2]+'s1'
         if len(self.QMB)!=1 :
             self.save_SHaDeCoeff = 'y'
             self.fileSHaDeCoeff = self.filename[:-2]+"c1"
 
         # Creates a zdipit.in file with the input configuration
-        self.output_filename = "zdipot_"+self.filename[:-3]+'.in'
+#        self.output_filename = "zdipot_"+self.filename[:-3]
