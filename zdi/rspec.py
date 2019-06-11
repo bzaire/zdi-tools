@@ -18,9 +18,10 @@ def read_matriz(ofile, nlines):
     # Read matrix
     info = [next(ofile) for j in range(4)]
     phase = float(info[2].split()[1])
+    sn = float(info[2].split()[5])
     tmp = [next(ofile).split() for i in range(nlines)]
     matriz = [float(tmp[i][j]) for i in range(nlines) for j in range(len(tmp[i]))]
-    return matriz, phase
+    return matriz, phase, sn
 
 def rstokes(filedata):
     # Global function
@@ -35,7 +36,7 @@ def rstokes(filedata):
     """
     with open(filedata, 'r') as ofile:
         # Reading basic informations to format the data
-        head = [next(ofile) for j in range(20)]
+        head = [next(ofile) for j in range(200)]
         nvr = int(head[4].split()[0])
         lmin, lmax = float(head[4].split()[3]), float(head[4].split()[4])
         lc = float(head[3].split()[1])
@@ -52,15 +53,17 @@ def rstokes(filedata):
         head = [next(ofile) for j in range(2)]
         del(head)
         phase = N.zeros(nphase)
+        snI = N.zeros(nphase)
         stokesI = N.zeros((nphase, nvr))
         if nstokes == 2:
             stokesV = N.zeros((nphase, nvr))
+            snV = N.zeros(nphase)
             for ip in range(nphase):
-                stokesI[ip,:], phase[ip] = read_matriz(ofile, nlines)
-                stokesV[ip,:], phase[ip] = read_matriz(ofile, nlines)
-            return phase, vr, stokesI, stokesV
+                stokesI[ip,:], phase[ip], snI[ip] = read_matriz(ofile, nlines)
+                stokesV[ip,:], phase[ip], snV[ip] = read_matriz(ofile, nlines)
+            return phase, vr, snI, stokesI, snV, stokesV
         elif nstokes ==1:
             for ip in range(nphase):
-                stokesI[ip,:], phase[ip] = read_matriz(ofile, nlines)
-            return phase, vr, stokesI
+                stokesI[ip,:], phase[ip], snI[ip] = read_matriz(ofile, nlines)
+            return phase, vr, snI, stokesI
         del(nphase, nvr, nstokes, vrmin, vrmax)
