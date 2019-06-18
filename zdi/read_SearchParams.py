@@ -72,6 +72,24 @@ class SearchParamsDR(object):
         P.tight_layout()
         P.show()
 
+    def plotSp(self, cmax = 1.0003, tmax = 0.003):
+        if cmax != None and tmax != None:
+            icmax = self.chi < cmax
+            itmax = self.test < tmax
+            imax =[icmax[i] and itmax[i] for i in range(self.chi.shape[0])]     
+        elif cmax != None:
+            imax = self.chi < cmax
+        elif tmax != None:
+            imax = self.test < tmax
+        P.scatter(self.beta[imax], self.gamma[imax], c=self.sp_ph[imax], cmap=cmocean.cm.thermal_r)
+        P.xlim((self.beta.min(), self.beta.max()))
+        P.ylim((self.gamma.min(), self.gamma.max()))
+        P.xlabel(r'$\beta$')
+        P.ylabel(r'$\gamma$')
+        P.colorbar()
+        P.tight_layout()
+        P.show()
+
     def plotS(self, cmax = 1.0003, tmax = 0.003):
         if cmax != None and tmax != None:
             icmax = self.chi < cmax
@@ -99,9 +117,9 @@ class SearchParamsDR(object):
         icb = N.bitwise_and(icmax, itmax)
         beta = self.beta[icb].copy(); gamma = self.gamma[icb].copy(); s = self.s[icb].copy(); test = self.test[icb].copy(); field = field[icb]
         if smin != None:
-            imax = self.s > smin
+            isc = self.s > smin
             beta = beta[isc]; gamma = gamma[isc]; s = s[isc]; test = test[isc]; field = field[isc]
-        ax.scatter(beta, gamma, field, c=field, cmap=cmocean.cm.thermal)
+        ax.scatter(beta, gamma, field, c=field, cmap=cmocean.cm.thermal_r)
         P.xlabel(r'$\beta$')
         P.ylabel(r'$\gamma$')
         P.show()
