@@ -19,3 +19,16 @@ def norm(vr, matrix, cont=0.9992, fac = 5.1):
         rescale[i,:] = cont - (1 - norm_matrix[i,:])*(fac/area[i])
 #        areaf[i] = N.trapz(cont - rescale[i,:], dx=1.8)
     return rescale
+
+def norm_search(vr, matrix, fit_cont, area, cont=0.9992, fac = 5.1):
+    # input:
+    #        fit_cont : list with function containing the 1th degree polynomial for each observation.
+    #        area : list with the areas computed for each observation.
+    norm_matrix = N.zeros_like(matrix)
+    nObs = matrix.shape[0]
+    rescale = N.zeros_like(matrix)
+    for i in range(nObs):
+        stokes = matrix[i,:]
+        norm_matrix[i,:] = stokes/fit_cont[i](vr)
+        rescale[i,:] = cont - (1 - norm_matrix[i,:])*(fac/area[i])
+    return rescale
