@@ -13,6 +13,19 @@ def rzdipot(lastline):
     hot = lastline[9]     # Hot spot
     return chi2, s, sp_ph, test, cool, hot
 
+def rzdipotB(lastline):
+    """ This funtion reads data format of zdipot routine.
+        Parameters:
+            lastline: str
+        Return:
+            list with the formated outputs of zdipot
+    """
+    chi2 = lastline[2]     # Chi square
+    s = lastline[3]        # Entropy
+    bmod = lastline[4]    # magnetic field
+    test = lastline[5]     # Test
+    return chi2, s, bmod, test
+
 def rzdipot_IV(lastline):
     """ This funtion reads data format of zdipot routine.
         Parameters:

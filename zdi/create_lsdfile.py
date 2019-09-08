@@ -116,7 +116,7 @@ def create_lsd_05(filename, phase_shift, vr_shift, vr_max, stokesV=False):
                 else:
                     nexcluded += 2
             else: 
-                if(snI[0:25].mean()>=500.):
+                if(snI[0:25].mean()>=300.):
                     P.plot(cvr, cI, 'k',linewidth=1) 
                     P.text(-100., .95,s=r'$\phi$ = %1.4f, $v_\mathrm{rad}$ = %2.1f, k = %3.1f' %(phase_shift, vr_shift, vr_max), fontsize=10)
                     P.plot(N.ones(10)*110.,N.linspace(0.98*cI.min(),1.02*cI.max(),10), '--k')
@@ -141,12 +141,13 @@ def create_lsd_05(filename, phase_shift, vr_shift, vr_max, stokesV=False):
 def create_lsd_04(filename, phase_shift, vr_shift, vr_max, stokesV=False):
     if stokesV:
         files = glob.glob('lsd04_*')
-        nt = 2*len(files)
+        print(len(files))
+        nt = int(2.*len(files))
+        print(nt)
     else:
         files = glob.glob('I_lsd04_*')
         nt = len(files)
     files.sort()
-    nt = len(files)
     print(nt)
     t = N.zeros(nt)
     count = 0
@@ -192,7 +193,7 @@ def create_lsd_04(filename, phase_shift, vr_shift, vr_max, stokesV=False):
                 else:
                     nexcluded += 2
             else: 
-                if(snI[0:25].mean()>=500.):
+                if(snI[0:25].mean()>=0.009):
                     P.plot(cvr, cI, 'k',linewidth=1) 
                     P.text(-100., .95,s=r'$\phi$ = %1.4f, $v_\mathrm{rad}$ = %2.1f, k = %3.1f' %(phase_shift, vr_shift, vr_max), fontsize=10)
                     P.plot(N.ones(10)*110.,N.linspace(0.98*cI.min(),1.02*cI.max(),10), '--k')

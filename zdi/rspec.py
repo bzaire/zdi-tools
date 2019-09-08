@@ -80,3 +80,36 @@ def rstokes(filedata):
             return phase, vr, snI, stokesI
         del(nphase, nvr, nstokes, vrmin, vrmax)
 
+def rstokes_V(filedata):
+    # Global function
+    """ Read the phase and the stokes parameters available (I and/or V).
+        Standard format produced by .ss and .s1 files.
+        Parameters:
+            filedata: str
+                Name of the file with the stokes data.
+        Return
+            out: ndarray
+                Phase of measurement, radial velocity and stokes parameters.
+    """
+    with open(filedata, 'r') as ofile:
+        # Reading basic informations to format the data
+        head = [next(ofile) for j in range(200)]
+        nvr = int(head[4].split()[0])
+        nlines = get_ml(nvr)
+        nphase = int(int(head[1].split()[0]))
+        del(head)
+
+    with open(filedata, 'r') as ofile:
+        # Reading stokes parameters
+        head = [next(ofile) for j in range(2)]
+        del(head)
+        phase = N.zeros(nphase)
+        snV = N.zeros(nphase)
+        stokesV = []
+        vr = []
+        for ip in range(nphase):
+            temp_vr, tempV, phase[ip], snV[ip] = read_matriz(ofile, nlines)
+            vr.append(temp_vr)
+            stokesV.append(tempV)
+        return phase, vr, snV, stokesV
+
