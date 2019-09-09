@@ -13,25 +13,27 @@ def get_ml(npoints):
     else:
         return int(npoints/8)
 
-def read_matriz(ofile, nlines):
+def read_block(ofile):
     # Local function.
-    # Read matrix
+    # Read block with data. 
     info = [next(ofile) for j in range(4)]
-    phase = float(info[2].split()[1])
-    nvr = int(info[2].split()[0])
-    lmin, lmax = float(info[2].split()[3]), float(info[2].split()[4])
-    lc = float(info[1].split()[1])
+    which_stokes = int(info[1].split()[-1])  # Cycle of observation
+    cycle = float(info[2].split()[1])  # Cycle of observation
+    nvr = int(info[2].split()[0])  # Number of points in radial velocity
+    nlines = get_ml(nvr)  # Find the numbers of lines which contain the data
+    lc = float(info[1].split()[1])   # Central wavelength
+    lmin, lmax = float(info[2].split()[3]), float(info[2].split()[4])  # Min, Max wavelengths
     c = 299792. #  Speed of light in km/s
-    vrmin, vrmax = (lmin-lc)*c/lc, (lmax-lc)*c/lc
+    vrmin, vrmax = (lmin-lc)*c/lc, (lmax-lc)*c/lc  # Min, Max radial velocities
     vr = N.linspace(vrmin, vrmax, nvr, endpoint=True)
-    sn = float(info[2].split()[5])
+    sn = float(info[2].split()[5])    # Signal to Noise
     tmp = [next(ofile).split() for i in range(nlines)]
     matriz = [float(tmp[i][j]) for i in range(nlines) for j in range(len(tmp[i]))]
-    return vr, matriz, phase, sn
+    return vr, matriz, cycle, sn, which_stokes
 
 def rstokes(filedata):
     # Global function
-    """ Read the phase and the stokes parameters available (I and/or V).
+    """ Read the cycle and the stokes parameters available (I and/or V).
         Standard format produced by .ss and .s1 files.
         Parameters:
             filedata: str
@@ -41,75 +43,25 @@ def rstokes(filedata):
                 Phase of measurement, radial velocity and stokes parameters.
     """
     with open(filedata, 'r') as ofile:
-        # Reading basic informations to format the data
-        head = [next(ofile) for j in range(200)]
-        nvr = int(head[4].split()[0])
-        #lmin, lmax = float(head[4].split()[3]), float(head[4].split()[4])
-        #lc = float(head[3].split()[1])
-        #c = 299792. #  Speed of light in km/s
-        #vrmin, vrmax = (lmin-lc)*c/lc, (lmax-lc)*c/lc
-        #vr = N.linspace(vrmin, vrmax, nvr, endpoint=True)
-        nlines = get_ml(nvr)
-        nstokes = int(1 + int(head[7+nlines].split()[-1]))
-        nphase = int(int(head[1].split()[0])/nstokes)
-        del(head)
-
-    with open(filedata, 'r') as ofile:
         # Reading stokes parameters
         head = [next(ofile) for j in range(2)]
+        nObs = int(head[1].split()[0])
         del(head)
-        phase = N.zeros(nphase)
-        snI = N.zeros(nphase)
-        stokesI = []
-        vr = []
-        if nstokes == 2:
-            stokesV = []
-            snV = N.zeros(nphase)
-            for ip in range(nphase):
-                temp_vr, tempI, phase[ip], snI[ip] = read_matriz(ofile, nlines)
-                temp_vr, tempV, phase[ip], snV[ip] = read_matriz(ofile, nlines)
-                vr.append(temp_vr)
-                stokesI.append(tempI)
-                stokesV.append(tempV)
-            return phase, vr, snI, stokesI, snV, stokesV
-        elif nstokes ==1:
-            for ip in range(nphase):
-                temp_vr, tempI, phase[ip], snI[ip] = read_matriz(ofile, nlines)
-                vr.append(temp_vr)
-                stokesI.append(tempI)
-            return phase, vr, snI, stokesI
-        del(nphase, nvr, nstokes, vrmin, vrmax)
-
-def rstokes_V(filedata):
-    # Global function
-    """ Read the phase and the stokes parameters available (I and/or V).
-        Standard format produced by .ss and .s1 files.
-        Parameters:
-            filedata: str
-                Name of the file with the stokes data.
-        Return
-            out: ndarray
-                Phase of measurement, radial velocity and stokes parameters.
-    """
-    with open(filedata, 'r') as ofile:
-        # Reading basic informations to format the data
-        head = [next(ofile) for j in range(200)]
-        nvr = int(head[4].split()[0])
-        nlines = get_ml(nvr)
-        nphase = int(int(head[1].split()[0]))
-        del(head)
-
-    with open(filedata, 'r') as ofile:
-        # Reading stokes parameters
-        head = [next(ofile) for j in range(2)]
-        del(head)
-        phase = N.zeros(nphase)
-        snV = N.zeros(nphase)
-        stokesV = []
-        vr = []
-        for ip in range(nphase):
-            temp_vr, tempV, phase[ip], snV[ip] = read_matriz(ofile, nlines)
-            vr.append(temp_vr)
-            stokesV.append(tempV)
-        return phase, vr, snV, stokesV
-
+        # Set list with variables
+        cycleI = []; vrI = []
+        snI = []; I = []
+        cycleV = []; vrV = []
+        snV = []; V = []
+        for iObs in range(nObs):
+            tempVr, tempStokes, tempCycle, tempSn, which_stokes = read_block(ofile)
+            if which_stokes == 0:
+                vrI.append(tempVr)
+                cycleI.append(tempCycle)
+                snI.append(tempSn)
+                I.append(tempStokes)
+            else:
+                vrV.append(tempVr)
+                cycleV.append(tempCycle)
+                snV.append(tempSn)
+                V.append(tempStokes)
+        return cycleI, vrI, snI, I, cycleV, vrV, snV, V

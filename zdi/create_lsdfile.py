@@ -3,7 +3,7 @@ import matplotlib.pyplot as P
 import glob 
 from math import modf 
 from .rspec import rstokes
-from .norm import norm, norm_search
+from .norm import norm
 import os
 
 # CONSTANTS
@@ -47,8 +47,10 @@ def wfile_V(wi, phase, vr, snV, V):
     wi.write('\n')
     wmatrix(wi, V)
 
-def create_lsd(year, phase_shift, vr_shift, vr_max, iNorm=False):
-    if iNorm:
+def create_lsd(year, phase_shift, vr_shift, vr_max, iNorm=False, iSearch=False):
+    if iSearch:
+        filename = "v471tau_04_a%3.1fp%1.4fv%2.1f.ss" %(vr_max, abs(phase_shift), vr_shift)
+    elif iNorm:
         filename = 'v471tau_'+year+'.ss'
     else:
         filename = 'v471tau_'+year+'.s'
@@ -60,7 +62,7 @@ def create_lsd(year, phase_shift, vr_shift, vr_max, iNorm=False):
         print('Nint observations = ', nt_int)
         files_int.sort()
         t_int = N.zeros(nt_int)
-        P.figure(figsize=(8,5))
+#        P.figure(figsize=(8,5))
         count = 0
         nexcluded = 0
         with open('observed_data_excluded.txt', 'w') as wud:
@@ -77,10 +79,10 @@ def create_lsd(year, phase_shift, vr_shift, vr_max, iNorm=False):
                 cycle -= 14420. #subtract some cycles to make things more readable
                 count += 1
                 if(snI[0:25].mean()>=400.):
-                    P.plot(cvr, cI, 'k',linewidth=1) 
-                    P.text(-100., .95,s=r'$\phi$ = %1.4f, $v_\mathrm{rad}$ = %2.1f, k = %3.1f' %(phase_shift, vr_shift, vr_max), fontsize=10)
-                    P.plot(N.ones(10)*110.,N.linspace(0.98*cI.min(),1.02*cI.max(),10), '--k')
-                    P.plot(-N.ones(10)*110.,N.linspace(0.98*cI.min(),1.02*cI.max(),10), '--k')
+#                    P.plot(cvr, cI, 'k',linewidth=1) 
+#                    P.text(-100., .95,s=r'$\phi$ = %1.4f, $v_\mathrm{rad}$ = %2.1f, k = %3.1f' %(phase_shift, vr_shift, vr_max), fontsize=10)
+#                    P.plot(N.ones(10)*110.,N.linspace(0.98*cI.min(),1.02*cI.max(),10), '--k')
+#                    P.plot(-N.ones(10)*110.,N.linspace(0.98*cI.min(),1.02*cI.max(),10), '--k')
                     if iNorm:
                         normI = norm(cvr, cI, cont=0.9993, fac=5.13) # norm data
                     else:
