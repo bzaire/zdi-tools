@@ -47,9 +47,9 @@ def wfile_V(wi, phase, vr, snV, V):
     wi.write('\n')
     wmatrix(wi, V)
 
-def create_lsd(year, phase_shift, vr_shift, vr_max, iNorm=False, iSearch=False):
+def create_lsd(year, phase_shift, vr_shift, vr_max, iNorm=False, iSearch=False, caimI=1., caimV=1.):
     if iSearch:
-        filename = "v471tau_04_a%3.1fp%1.4fv%2.1f.ss" %(vr_max, abs(phase_shift), vr_shift)
+        filename = "v471tau_%s_a%3.3fp%1.6fv%2.3f.ss" %(year, vr_max, abs(phase_shift), vr_shift)
     elif iNorm:
         filename = 'v471tau_'+year+'.ss'
     else:
@@ -57,28 +57,31 @@ def create_lsd(year, phase_shift, vr_shift, vr_max, iNorm=False, iSearch=False):
     with open(filename, 'w') as wi:
         PATH = '/Users/bzaire/lsd/spectra/v471tau/v471tau_int' + year
         os.chdir(PATH)
-        files_int = N.genfromtxt('observed_data.txt', dtype=str)
+        files_int = N.genfromtxt('observed_data.txt', dtype=str, comments='*')
         nt_int = int(len(files_int))
         print('Nint observations = ', nt_int)
         files_int.sort()
         t_int = N.zeros(nt_int)
 #        P.figure(figsize=(8,5))
         count = 0
+        nCycles = 0
         nexcluded = 0
         with open('observed_data_excluded.txt', 'w') as wud:
             for ifile in files_int:
                 read_t = open(ifile, 'r')
                 t_int[count] = float(read_t.readline())
                 data = N.genfromtxt(ifile, skip_header=3)
-                cycle = (t_int[count] - To)/period + phase_shift 
-                vr = data[:,0] - (vr_max*N.sin(2.*N.pi*cycle) + vr_shift)
+                cycle = (t_int[count] - To)/period 
+                if count == 0:
+                    nCycles = int(cycle)
+                vr = data[:,0] - (vr_max*N.sin(2.*N.pi*(cycle + phase_shift)) + vr_shift)
                 I = data[:,1]; sI = data[:,2]
                 snI = I/sI
                 ics = N.abs(vr) < 110.
                 cvr = vr[ics]; cI = I[ics]
-                cycle -= 14420. #subtract some cycles to make things more readable
+                cycle -= nCycles #subtract some cycles to make things more readable
                 count += 1
-                if(snI[0:25].mean()>=400.):
+                if(snI[0:25].mean()>=300.):
 #                    P.plot(cvr, cI, 'k',linewidth=1) 
 #                    P.text(-100., .95,s=r'$\phi$ = %1.4f, $v_\mathrm{rad}$ = %2.1f, k = %3.1f' %(phase_shift, vr_shift, vr_max), fontsize=10)
 #                    P.plot(N.ones(10)*110.,N.linspace(0.98*cI.min(),1.02*cI.max(),10), '--k')
@@ -88,13 +91,15 @@ def create_lsd(year, phase_shift, vr_shift, vr_max, iNorm=False, iSearch=False):
                     else:
                         normI = cI
                     # store result
-                    wfile(wi, cycle, cvr, snI.mean()*N.sqrt(1.), normI)
+                    wfile(wi, cycle, cvr, snI.mean()*N.sqrt(1./caimI), normI)
                 else:
+                    print(ifile)
                     wud.write(ifile+'\n')
                     nexcluded += 1
+        print('Nint obs excluded =', nexcluded)
         PATH = '/Users/bzaire/lsd/spectra/v471tau/v471tau_pol' + year
         os.chdir(PATH)
-        files_pol = N.genfromtxt('observed_data.txt', dtype=str)
+        files_pol = N.genfromtxt('observed_data.txt', dtype=str, comments='*')
         nt_pol = int(len(files_pol))
         print('Npol observations = ', nt_pol)
         files_pol.sort()
@@ -105,18 +110,21 @@ def create_lsd(year, phase_shift, vr_shift, vr_max, iNorm=False, iSearch=False):
                 read_t = open(ifile, 'r')
                 t_pol[count] = float(read_t.readline())
                 data = N.genfromtxt(ifile, skip_header=3)
-                cycle = (t_pol[count] - To)/period + phase_shift 
-                vr = data[:,0] - (vr_max*N.sin(2.*N.pi*cycle) + vr_shift)
+                cycle = (t_pol[count] - To)/period
+                vr = data[:,0] - (vr_max*N.sin(2.*N.pi*(cycle + phase_shift)) + vr_shift)
                 V = data[:,3]; sV = data[:,4]
                 snV = 1./sV
                 Null = data[:,5]; sN = data[:,6]
                 snN = 1./sN
+                ics = N.abs(vr) < 110.
                 cV = V[ics]; cNull = Null[ics]
-                cycle -= 14420. #subtract some cycles to make things more readable
-                if(snV.mean()>=1500.):
+                cycle -= nCycles #subtract some cycles to make things more readable
+                if(abs(snV[0:25]).mean()>=1950.):
                     # store result
-                    wfile_V(wi, cycle, cvr, snV.mean(), cV)
+                    wfile_V(wi, cycle, cvr, snV.mean()*N.sqrt(1./caimV), cV)
                 else:
+                    print(ifile)
+                    wud.write(ifile+'\n')
                     nexcluded += 1
     PATH = '/Users/bzaire/lsd/spectra/v471tau/'
     os.chdir(PATH)
@@ -131,3 +139,56 @@ def create_lsd(year, phase_shift, vr_shift, vr_max, iNorm=False, iSearch=False):
         file.write('\n')
         file.writelines(data)
     print(nt_int+nt_pol-nexcluded)
+
+def halpha_lsd(year, phase_shift, vr_shift, vr_max):
+    filename = 'v471tau_'+year+'.ss'
+    with open(filename, 'w') as wi:
+        PATH = '/Users/bzaire/lsd/spectra/v471tau/v471tau_int' + year + '/halpha'
+        os.chdir(PATH)
+        files_int = N.genfromtxt('observed_data.txt', dtype=str, comments='*')
+        nt_int = int(len(files_int))
+        print('Nint observations = ', nt_int)
+        files_int.sort()
+        t_int = N.zeros(nt_int)
+        P.figure(figsize=(8,5))
+        count = 0
+        nCycles = 0
+        nexcluded = 0
+        with open('observed_data_excluded.txt', 'w') as wud:
+            for ifile in files_int:
+                read_t = open(ifile, 'r')
+                t_int[count] = float(read_t.readline())
+                data = N.genfromtxt(ifile, skip_header=3)
+                cycle = (t_int[count] - To)/period 
+                if count == 0:
+                    nCycles = int(cycle)
+                vr = data[:,0] - (vr_max*N.sin(2.*N.pi*cycle) + vr_shift)
+                I = data[:,1]; sI = data[:,2]
+                snI = I/sI
+                ics = N.abs(vr) < 450.
+                cvr = vr[ics]; cI = I[ics]
+                cycle -= nCycles #subtract some cycles to make things more readable
+                count += 1
+                if(snI[0:25].mean()>=10.):
+                    P.plot(cvr, cI, 'k',linewidth=1) 
+                    P.text(-100., .95,s=r'$\phi$ = %1.4f, $v_\mathrm{rad}$ = %2.1f, k = %3.1f' %(phase_shift, vr_shift, vr_max), fontsize=10)
+                    P.plot(N.ones(10)*110.,N.linspace(0.98*cI.min(),1.02*cI.max(),10), '--k')
+                    P.plot(-N.ones(10)*110.,N.linspace(0.98*cI.min(),1.02*cI.max(),10), '--k')
+                    # store result
+                    wfile(wi, cycle, cvr, snI.mean()*N.sqrt(1.), I)
+                else:
+                    wud.write(ifile+'\n')
+                    nexcluded += 1
+    os.chdir(PATH)
+    print('Excluding %d observations in 20%2s' %(nexcluded, year))
+    with open(filename, 'r') as file:
+        # read a list of lines into data
+        data = file.readlines()
+    # and write everything back
+    with open(filename, 'w') as file:
+        file.write('LSD profiles of v471tau in 20'+year+'\n')
+        file.write('%d\n' %(nt_int - nexcluded))
+        file.write('\n')
+        file.writelines(data)
+    print(nt_int-nexcluded)
+ 

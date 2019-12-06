@@ -29,7 +29,7 @@ def read_block(ofile):
     sn = float(info[2].split()[5])    # Signal to Noise
     tmp = [next(ofile).split() for i in range(nlines)]
     matriz = [float(tmp[i][j]) for i in range(nlines) for j in range(len(tmp[i]))]
-    return vr, matriz, cycle, sn, which_stokes
+    return vr, N.array(matriz), cycle, sn, which_stokes
 
 def rstokes(filedata):
     # Global function
@@ -64,4 +64,4 @@ def rstokes(filedata):
                 cycleV.append(tempCycle)
                 snV.append(tempSn)
                 V.append(tempStokes)
-        return cycleI, vrI, snI, I, cycleV, vrV, snV, V
+        return N.array(cycleI), vrI, N.array(snI), I, N.array(cycleV), vrV, N.array(snV), V
