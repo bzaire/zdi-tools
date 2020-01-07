@@ -3,7 +3,7 @@ import matplotlib.pyplot as P
 import glob 
 from math import modf 
 from .rspec import rstokes
-from .norm import norm
+from .norm import norm, normHa
 import os
 
 # CONSTANTS
@@ -143,9 +143,11 @@ def create_lsd(year, phase_shift, vr_shift, vr_max, iNorm=False, iSearch=False, 
 def halpha_lsd(year, phase_shift, vr_shift, vr_max):
     filename = 'v471tau_'+year+'.ss'
     with open(filename, 'w') as wi:
-        PATH = '/Users/bzaire/lsd/spectra/v471tau/v471tau_int' + year + '/halpha'
+        PATH = '/Users/bzaire/lsd/spectra/v471tau/v471tau_int' + year 
         os.chdir(PATH)
         files_int = N.genfromtxt('observed_data.txt', dtype=str, comments='*')
+        PATH1 = '/Users/bzaire/lsd/spectra/v471tau/v471tau_int' + year + '/halpha'
+        os.chdir(PATH1)
         nt_int = int(len(files_int))
         print('Nint observations = ', nt_int)
         files_int.sort()
@@ -154,32 +156,30 @@ def halpha_lsd(year, phase_shift, vr_shift, vr_max):
         count = 0
         nCycles = 0
         nexcluded = 0
-        with open('observed_data_excluded.txt', 'w') as wud:
-            for ifile in files_int:
-                read_t = open(ifile, 'r')
-                t_int[count] = float(read_t.readline())
-                data = N.genfromtxt(ifile, skip_header=3)
-                cycle = (t_int[count] - To)/period 
-                if count == 0:
-                    nCycles = int(cycle)
-                vr = data[:,0] - (vr_max*N.sin(2.*N.pi*cycle) + vr_shift)
-                I = data[:,1]; sI = data[:,2]
-                snI = I/sI
-                ics = N.abs(vr) < 450.
-                cvr = vr[ics]; cI = I[ics]
-                cycle -= nCycles #subtract some cycles to make things more readable
-                count += 1
-                if(snI[0:25].mean()>=10.):
-                    P.plot(cvr, cI, 'k',linewidth=1) 
-                    P.text(-100., .95,s=r'$\phi$ = %1.4f, $v_\mathrm{rad}$ = %2.1f, k = %3.1f' %(phase_shift, vr_shift, vr_max), fontsize=10)
-                    P.plot(N.ones(10)*110.,N.linspace(0.98*cI.min(),1.02*cI.max(),10), '--k')
-                    P.plot(-N.ones(10)*110.,N.linspace(0.98*cI.min(),1.02*cI.max(),10), '--k')
-                    # store result
-                    wfile(wi, cycle, cvr, snI.mean()*N.sqrt(1.), I)
-                else:
-                    wud.write(ifile+'\n')
-                    nexcluded += 1
-    os.chdir(PATH)
+        for ifile in files_int:
+            read_t = open(ifile, 'r')
+            t_int[count] = float(read_t.readline())
+            data = N.genfromtxt(ifile, skip_header=3)
+            cycle = (t_int[count] - To)/period 
+            if count == 0:
+                nCycles = int(cycle)
+            vr = data[:,0] - (vr_max*N.sin(2.*N.pi*cycle) + vr_shift)
+            I = data[:,1]; sI = data[:,2]
+            snI = I/sI
+            ics = N.abs(vr) < 400.
+            cvr = vr[ics]; cI = I[ics]
+            cycle -= nCycles #subtract some cycles to make things more readable
+            count += 1
+            if(snI[0:25].mean()>=10.):
+                P.plot(cvr, cI, 'k',linewidth=1) 
+                P.text(-100., .95,s=r'$\phi$ = %1.4f, $v_\mathrm{rad}$ = %2.1f, k = %3.1f' %(phase_shift, vr_shift, vr_max), fontsize=10)
+                P.plot(N.ones(10)*110.,N.linspace(0.98*cI.min(),1.02*cI.max(),10), '--k')
+                P.plot(-N.ones(10)*110.,N.linspace(0.98*cI.min(),1.02*cI.max(),10), '--k')
+                # store result
+                normI = normHa(cvr, cI)
+                wfile(wi, cycle, cvr, snI.mean()*N.sqrt(1.), normI)
+            else:
+                nexcluded += 1
     print('Excluding %d observations in 20%2s' %(nexcluded, year))
     with open(filename, 'r') as file:
         # read a list of lines into data
