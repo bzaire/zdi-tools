@@ -17,7 +17,7 @@ def read_block(ofile):
     # Local function.
     # Read block with data. 
     info = [next(ofile) for j in range(4)]
-    which_stokes = int(info[1].split()[-1])  # Cycle of observation
+    which_stokes = int(info[1].split()[-1])  # Stokes
     cycle = float(info[2].split()[1])  # Cycle of observation
     nvr = int(info[2].split()[0])  # Number of points in radial velocity
     nlines = get_ml(nvr)  # Find the numbers of lines which contain the data
