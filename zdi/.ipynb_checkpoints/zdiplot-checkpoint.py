@@ -4,9 +4,6 @@ import matplotlib.colors
 import matplotlib
 import cmocean
 from .rspec import rstokes
-from matplotlib.ticker import MultipleLocator
-
-
 # Module with functions to visualize zdi data
 P.style.use(['seaborn-white', 'seaborn-paper', 'seaborn-ticks'])
 matplotlib.rc("font", family="Times New Roman", size=20)
@@ -114,7 +111,6 @@ def SpecV(filename, iSort=False, title='',save=''):
         masked_Z = N.ma.array(Z, mask = Z == 0)
         P.pcolormesh(X, Y, masked_Z, vmin=-pc, vmax=pc, cmap=cmap)
         P.ylabel(r'Rotation cycle')
-    ax1.xaxis.set_minor_locator(MultipleLocator(25))
     P.xlabel(r'$v_\mathrm{r} (\mathrm{km/s}) $', fontsize='large')
     P.xticks(fontsize='medium')
     P.yticks(fontsize='medium')
@@ -151,7 +147,6 @@ def SpecI(filename, iSort=False, title='',save=''):
         P.pcolormesh(X, Y, masked_Z, vmin=1.-pc, vmax=1.+pc, cmap=cmap)
         P.ylabel(r'Rotation phase', fontsize='large')
         P.title(r'%s' %title, fontsize='large')
-        ax1.yaxis.set_minor_locator(MultipleLocator(.05))
         P.ylim((0,1))
     else:
         tvr, tZ = interp_data1(vrI, cycleI, I)
@@ -170,60 +165,14 @@ def SpecI(filename, iSort=False, title='',save=''):
 #        P.imshow(rtZ, vmin=1.-pc, vmax=1.+pc, cmap=cmap, origin='lower', extent=[tvr.min(), tvr.max(), cycleI.min(), cycleI.max()], aspect=30.)
 #        P.yticks(cycleI)
         P.ylabel(r'Rotation cycle')
-    ax1.xaxis.set_minor_locator(MultipleLocator(25))
     P.xlabel(r'$v_\mathrm{r} (\mathrm{km/s}) $', fontsize='large')
-    P.xticks(fontsize='large')
-    P.yticks(fontsize='large')
+    P.xticks(fontsize='medium')
+    P.yticks(fontsize='medium')
     P.tight_layout()
     cmap = P.colorbar(extend='both', fraction=0.15, shrink=0.5)
-    cmap.ax.tick_params(labelsize='large')
+    cmap.ax.tick_params(labelsize='medium')
     if save != '':
         P.savefig(save+'.pdf')
-    P.show()
-
-def SpecCa(filename, iSort=False,  title='',save=''):
-    # Read data
-    cycleI, vrI, snI, I, cycleV, vrV, snV, V =  rstokes(filename)
-    vmin = min([min(i) for i in vrI])
-    vmax = max([max(i) for i in vrI])
-    new_vr = N.arange(vmin, vmax, 1.8)
-
-    # Plot dynamic spectra
-    #cmap = cmocean.cm.solar  # Colormap used in plot
-    cmap = cmocean.cm.matter_r  # Colormap used in plot
-    P.figure(figsize=(4,5))
-    ax1 = P.subplot(111)
-    pcmin = .5
-    pcmax = 2.2
-    if iSort:
-        tZ = interp_data(vrI, cycleI, I)
-        N.save('camatriz',tZ)
-        phaseI = (cycleI%1)
-        iPhase = (cycleI%1).argsort()
-        new_phase, Z = refine(phaseI[iPhase], tZ)
-        X, Y = N.meshgrid(new_vr, new_phase)
-        masked_Z = N.ma.array(Z, mask = Z == 0) 
-        P.pcolormesh(X, Y, masked_Z, vmin=pcmin, vmax=pcmax, cmap=cmap)
-        P.ylabel(r'Rotation phase', fontsize='large')
-    else:
-        tvr, tZ = interp_data1(vrI, cycleI, I)
-        new_cycle, Z = refine(cycleI, tZ)
-        X, Y = N.meshgrid(new_vr, new_cycle)
-        masked_Z = N.ma.array(Z, mask = Z == 0)
-        P.pcolormesh(X, Y, masked_Z, vmin=1., vmax=1.+pc, cmap=cmap)
-        P.ylabel(r'Rotation cycle', fontsize='large')
-    ax1.xaxis.set_minor_locator(MultipleLocator(50))
-    P.xlim((-400.,400.))
-    P.title(r'%s' %title, fontsize='large')
-    P.ylim((0.,1.))
-    P.xlabel(r'$v_\mathrm{r}$ (km/s)', fontsize='large')
-    P.xticks(fontsize='large')
-    P.yticks(fontsize='large')
-    P.tight_layout()
-    cmap = P.colorbar(extend='max', fraction=0.15, shrink=0.95)
-    cmap.ax.tick_params(labelsize='large')
-    if save != '':
-        P.savefig(save+'.png')
     P.show()
 
 def SpecHa(filename, iSort=False,  title='',save=''):
@@ -248,11 +197,6 @@ def SpecHa(filename, iSort=False,  title='',save=''):
         masked_Z = N.ma.array(Z, mask = Z == 0) 
         P.pcolormesh(X, Y, masked_Z, vmin=1.-pc, vmax=1.+pc, cmap=cmap)
         P.ylabel(r'Rotation phase', fontsize='large')
-        ax1.yaxis.set_minor_locator(MultipleLocator(.05))
-        P.plot(88.7*N.ones_like(new_phase), new_phase, 'k-.',  dashes=[4,10])
-        P.plot(-88.7*N.ones_like(new_phase), new_phase, 'k-.', dashes=[4,10])
-        if filename[-5:-3] in ('04', '14'):
-            P.plot(-215.*N.sin(2*N.pi*new_phase), new_phase, 'k')
     else:
         tvr, tZ = interp_data1(vrI, cycleI, I)
         new_cycle, Z = refine(cycleI, tZ)
@@ -260,18 +204,17 @@ def SpecHa(filename, iSort=False,  title='',save=''):
         masked_Z = N.ma.array(Z, mask = Z == 0)
         P.pcolormesh(X, Y, masked_Z, vmin=1.-pc, vmax=1.+pc, cmap=cmap)
         P.ylabel(r'Rotation cycle', fontsize='large')
-    ax1.xaxis.set_minor_locator(MultipleLocator(50))
     P.xlim((-400.,400.))
     P.title(r'%s' %title, fontsize='large')
     P.ylim((0.,1.))
-    P.xlabel(r'$v_\mathrm{r}$ (km/s)', fontsize='large')
-    P.xticks(fontsize='large')
-    P.yticks(fontsize='large')
+    P.xlabel(r'$v_\mathrm{r} (\mathrm{km/s}) $', fontsize='large')
+    P.xticks(fontsize='medium')
+    P.yticks(fontsize='medium')
     P.tight_layout()
-    cmap = P.colorbar(extend='both', fraction=0.15, shrink=0.95)
-    cmap.ax.tick_params(labelsize='large')
+    cmap = P.colorbar(extend='both', fraction=0.15, shrink=0.7)
+    cmap.ax.tick_params(labelsize='medium')
     if save != '':
-        P.savefig(save+'.png')
+        P.savefig(save+'.pdf')
     P.show()
 
 def DynSpecI(filename, filename2=None, save=''):
@@ -300,7 +243,7 @@ def DynSpecI(filename, filename2=None, save=''):
     new_phase1, Z1 = refine(phaseI1[iPhase1], tZ1)
     X1, Y1 = N.meshgrid(new_vr, new_phase1)
 
-    cycleI_uspot, vrI_uspot, snI_uspot, I_uspot, cycleV_uspot, vrV_uspot, snV_uspot, V_uspot =  rstokes(filename2[0:-3]+'u')
+    cycleI_uspot, vrI_uspot, snI_uspot, I_uspot, cycleV_uspot, vrV_uspot, snV_uspot, V_uspot =  rstokes(filename[0:-3]+'_unspotted.s1')
     phaseI_uspot = (cycleI_uspot%1)
     iPhase_uspot = (cycleI_uspot%1).argsort()
     tZ_uspot = interp_data(vrI_uspot, cycleI_uspot, I_uspot) 
@@ -315,8 +258,7 @@ def DynSpecI(filename, filename2=None, save=''):
     masked_Z = N.ma.array(rZ, mask = Z == 0)
     masked_Z1 = N.ma.array(rZ1, mask = Z1 == 0)
 
-    #cmap1 = cmocean.cm.gray
-    cmap1 = cmocean.cm.balance
+    cmap1 = cmocean.cm.gray_r
     cmap2 = cmocean.cm.tarn
     # Plot dynamic spectra
     fig, ax = P.subplots(1,3,figsize=(8, 4), sharex=True, sharey=True)
@@ -339,21 +281,15 @@ def DynSpecI(filename, filename2=None, save=''):
     cax0 = divider0.append_axes('right', size='0%', pad=0.005) 
     cax0.axis('off')
 
-    ax[0].xaxis.set_minor_locator(MultipleLocator(25))
-    ax[1].xaxis.set_minor_locator(MultipleLocator(25))
-    ax[2].xaxis.set_minor_locator(MultipleLocator(25))
-    ax[0].yaxis.set_minor_locator(MultipleLocator(.05))
-    ax[1].yaxis.set_minor_locator(MultipleLocator(.05))
-    ax[2].yaxis.set_minor_locator(MultipleLocator(.05))
-
+    ax[0].set_ylabel(r'Rotation cycle', fontsize='large')
     ax[0].set_ylabel(r'Rotation phase', fontsize='large')
     ax[0].set_title(r'Data', fontsize='large')
     ax[1].set_title(r'Model', fontsize='large')
     ax[2].set_title(r'Residuals $\times 10^{4}$', fontsize='large')
-    ax[0].set_xlabel(r'$v_\mathrm{r}$ (km/s)', fontsize='large')
-    ax[1].set_xlabel(r'$v_\mathrm{r}$ (km/s)', fontsize='large')
-    ax[2].set_xlabel(r'$v_\mathrm{r}$ (km/s)', fontsize='large')
+    ax[0].set_xlabel(r'$v_\mathrm{r} (\mathrm{km/s}) $', fontsize='large')
+    ax[1].set_xlabel(r'$v_\mathrm{r} (\mathrm{km/s}) $', fontsize='large')
+    ax[2].set_xlabel(r'$v_\mathrm{r} (\mathrm{km/s}) $', fontsize='large')
     P.tight_layout()
     if save != '':
-        P.savefig(save+'.png')
-    P.close()
+        P.savefig(save+'.pdf')
+    P.show()
